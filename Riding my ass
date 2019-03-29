@@ -1,0 +1,246 @@
+// New Project 2.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
+
+#include "pch.h"
+#include <iostream>
+#include <iomanip>
+#include <ctime>
+#include <cstdlib>
+#include <Windows.h>
+
+using namespace std;
+
+//Globals//
+string Weapons[6] = {"knife", "Crossbow", "Flail", "Broad Sword", "Morning Star", "Holy Staff" };
+string MonsterName[5] = { "Ogre", "Troll", "Serpent", "Gargoyle", };
+
+
+//map
+const int rows = 8;
+const int columns = 8;
+char gameBoard[rows][columns];
+
+//triggers
+
+//Traits
+int Attack = 1;
+int XP = 0;
+enum Aligment { Bad = 0, Good = 1 };
+int Turns_Played = 0;
+int Weapon = 20;
+
+
+
+//Function Prototypes
+void drawBoard(int, int);
+void changePosition(int &, int &, int);
+void UI();
+void Combat();
+
+
+/*
+This program creates a game board with a P representing where the player os currently located.
+You can provie a value and the player piece will move  to that next board space.
+
+P * * * * * * *
+*             *
+*             *
+*             *
+*             *
+*             *
+*             *
+* * * * * * * *
+
+*/
+
+int main()
+{
+	unsigned seed = time(0);
+	int spacesToMove = 0;
+	//Default the position of our game piece
+	int positionX = 0;
+	int positionY = 0;
+	char option;
+	int Luck;
+	
+	srand(seed);
+
+	//Draw the board
+
+	while (spacesToMove != -1) {
+
+		drawBoard(positionX, positionY);
+		UI();
+		
+		cout << "Press 1 to move, press 2 to explore, \npress 3 to save game" << endl;
+		cin >> option;
+		
+		if (option == '1' || option == '2' || option == '3')
+		{
+			switch (option)
+			{
+			case '1':
+				cout << "How many places will you move?\n\n";
+				cin >> spacesToMove;
+				if (spacesToMove > 0)
+				{
+					changePosition(positionX, positionY, spacesToMove);
+					drawBoard(positionX, positionY);
+				}
+				Turns_Played++;
+				system("cls");
+				break;
+
+			case '2':
+				Luck = rand() % 3 + 1;
+				if (Luck == '1' || Luck == '2' || Luck == '3')
+				{
+					switch (Luck)
+					{
+					case '1':
+						system("cls");
+						Combat();
+						break;
+
+					case '2': cout << "Help.";
+						break;
+
+					case '3': cout << "Not helping";
+						break;
+
+					default:cout << "wtf happen\n\n";
+						break;
+					}
+				}
+				break;
+
+			case '3': 
+				cout << "Look in bag";
+				break;
+
+			default: cout << "invalid input";
+				break;
+			}
+		}
+
+	}
+	return 0;
+}
+
+//move character
+void changePosition(int &positionX, int &positionY, int spacesToMove) {
+	while (spacesToMove > 0)
+	{
+		//position is in the first row and moving right
+		if (spacesToMove > 0 && positionX == 0 && positionY != 7) {
+			if (positionY + spacesToMove >= columns) {
+				spacesToMove = spacesToMove - (columns - (positionY + 1));
+				positionY = 7;
+			}
+			else {
+				positionY = positionY + spacesToMove;
+				spacesToMove = 0;
+			}
+		}
+		//position is last column and moving down 
+		if (spacesToMove > 0 && positionY == 7 && positionX != 7) {
+			if (positionX + spacesToMove >= rows) {
+				spacesToMove = spacesToMove - (rows - (positionX + 1));
+				positionX = 7;
+			}
+			else {
+				positionX = positionX + spacesToMove;
+				spacesToMove = 0;
+			}
+		}
+
+		//position is on last row and moving left
+		if (spacesToMove > 0 && positionX == 7 && positionY != 0) {
+			if ((columns - (positionY + 1)) + spacesToMove >= columns) {
+				spacesToMove = spacesToMove - (positionY);
+				positionY = 0;
+			}
+			else {
+				positionY = positionY - spacesToMove;
+				spacesToMove = 0;
+			}
+		}
+
+		//position is on first column and moving up
+		if (spacesToMove > 0 && positionY == 0 && positionX != 0) {
+			if ((rows - (positionX + 1)) + spacesToMove >= rows) {
+				spacesToMove = spacesToMove - (positionX);
+				positionX = 0;
+			}
+			else {
+				positionX = positionX - spacesToMove;
+				spacesToMove = 0;
+			}
+		}
+	} //end of while
+}
+
+//Make the map, show position
+void drawBoard(int positionX, int positionY) {
+	//Use two loops to draw the game board. If the passed in player position matches
+	//a position, place a P on it.
+
+	for (int x = 0; x < rows; x++)
+	{
+		for (int y = 0; y < columns; y++)
+		{
+			// placing cathedral
+
+			//The board representation will be drawn with * only if is the outer paths
+			//of the 2D Array
+			if (y == 0 || y == 7 || x == 0 || x == 7)
+			{
+				if (positionX == x && positionY == y)
+				{
+					gameBoard[x][y] = 'P';
+				}
+				else
+				{
+					gameBoard[x][y] = '*';
+					//Exit
+					gameBoard[3][0] = 'E';
+					//Graveyard
+					gameBoard[7][0] = 'G';
+					gameBoard[3][7] = 'G';
+					//Well of refelction
+					gameBoard[0][4] = 'W';
+					gameBoard[7][4] = 'W';
+					//Cathedral
+					gameBoard[0][7] = 'C';
+					gameBoard[7][7] = 'C';
+				}
+
+				cout << setw(2) << gameBoard[x][y];
+			}
+			else {
+				cout << setw(2) << " ";
+			}
+
+		}
+		cout << endl;
+	}
+}
+
+//Show the User Interface below the map
+void UI()
+{
+	int *tp;
+	tp = &Turns_Played;
+	cout << "Attack: " << Attack << " | XP: " << XP << endl;
+	cout << "Turns: " << *tp << "| Current Weapon: " << Weapon << "\n\n";
+
+}
+
+void Combat()
+{
+
+	cout << "You find a monster!\n\n";
+	Sleep(3000);
+
+
+}
